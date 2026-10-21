@@ -1,0 +1,20 @@
+# Dependencias y artefactos de desarrollo
+node_modules/
+dist/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+*.log
+
+# Base de datos local de desarrollo
+back/scans.db
+
+# Configuración de agentes y herramientas ignoradas solicitadas
+.agents/
+.agent/
+openspec/
+skills-lock.json
+
+# Variables locales de entorno
+.env

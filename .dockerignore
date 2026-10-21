@@ -1,0 +1,14 @@
+.git
+.github
+.agents
+.agent
+openspec
+skills-lock.json
+**/node_modules
+**/dist
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.pytest_cache
+**/*.log
+back/scans.db

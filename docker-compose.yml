@@ -1,0 +1,36 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: tiziano2612/security-scan-platform:latest
+    container_name: security_scan_app
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://n8n_user:secure_password@db:5432/security_scans
+      - N8N_WEBHOOK_URL=http://n8n:5678/webhook/trigger-scan
+    depends_on:
+      db:
+        condition: service_healthy
+
+  db:
+    image: postgres:15-alpine
+    container_name: security_scan_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: security_scans
+      POSTGRES_USER: n8n_user
+      POSTGRES_PASSWORD: secure_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U n8n_user -d security_scans"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
