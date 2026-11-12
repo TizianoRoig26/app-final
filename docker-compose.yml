@@ -8,8 +8,17 @@ services:
     ports:
       - "8000:8000"
     environment:
+      # Credenciales alineadas con Final/infra/n8n/docker-compose.yml
       - DATABASE_URL=postgresql://n8n_user:secure_password@db:5432/security_scans
+      # URL del Webhook de n8n (ajustar host si n8n corre en otro contenedor/red)
+      - N8N_BASE_URL=http://n8n:5678
       - N8N_WEBHOOK_URL=http://n8n:5678/webhook/trigger-scan
+      - N8N_WORKFLOW_ID=eZcFfWr0YiA2pAE3
+      # Configurar con el valor de la credencial webhookHeaderAuth01 de n8n
+      - N8N_WEBHOOK_SECRET=
+      - N8N_API_KEY=
+      - DEFAULT_SCAN_CIDR=172.18.0.200 172.18.0.201 172.18.0.202
+      - CORS_ORIGINS=*
     depends_on:
       db:
         condition: service_healthy
@@ -19,13 +28,17 @@ services:
     container_name: security_scan_db
     restart: unless-stopped
     environment:
+      # Coincidir exactamente con Final/infra/n8n/docker-compose.yml → sección postgres
       POSTGRES_DB: security_scans
       POSTGRES_USER: n8n_user
       POSTGRES_PASSWORD: secure_password
     ports:
-      - "5432:5432"
+      # Puerto 5433 en host para evitar conflictos con instancias locales de Postgres
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # El DDL de Final se ejecuta automáticamente al iniciar el contenedor
+      - ../Final/db/ddl_vulnerability_scans.sql:/docker-entrypoint-initdb.d/01_ddl.sql:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U n8n_user -d security_scans"]
       interval: 5s
