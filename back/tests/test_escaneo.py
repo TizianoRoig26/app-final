@@ -77,3 +77,14 @@ def test_export_pdf_report(client, auth_headers, sample_scans):
     assert response.status_code == 200
     assert response.headers["content-type"] == "application/pdf"
     assert response.content.startswith(b"%PDF")
+
+
+def test_get_thesis_metrics(client, auth_headers):
+    response = client.get("/api/v1/scans/thesis-metrics", headers=auth_headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["workflow_id"] == "eZcFfWr0YiA2pAE3"
+    assert len(data["laboratory_targets"]) == 3
+    assert data["experimental_benchmark"]["effectiveness_rate_percentage"] == 90.625
+    assert data["experimental_benchmark"]["time_reduction_percentage"] == 63.16
+

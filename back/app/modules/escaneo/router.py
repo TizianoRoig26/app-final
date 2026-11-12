@@ -36,6 +36,14 @@ def get_summary(
     return ScanService.get_summary(db)
 
 
+@router.get("/thesis-metrics")
+def get_thesis_metrics(
+    current_user: User = Depends(get_current_user),
+):
+    return ScanService.get_thesis_metrics()
+
+
+
 @router.post("/trigger", response_model=TriggerScanResponse)
 def trigger_scan(
     req: TriggerScanRequest,

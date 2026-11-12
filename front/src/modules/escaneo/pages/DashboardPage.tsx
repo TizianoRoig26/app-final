@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Navbar } from '../../../shared/components/Navbar'
 import { StatCards } from '../components/StatCards'
+import { ThesisBenchmarkPanel } from '../components/ThesisBenchmarkPanel'
 import { ScanTable } from '../components/ScanTable'
 import { TriggerScanModal } from '../components/TriggerScanModal'
 import { ScheduleModal } from '../components/ScheduleModal'
@@ -62,6 +63,9 @@ export const DashboardPage: React.FC = () => {
           schedule={schedule}
           isLoading={isLoadingSummary}
         />
+
+        {/* Panel de Métricas Experimentales de la Tesis */}
+        <ThesisBenchmarkPanel />
 
         {/* Tabla de Hallazgos */}
         <section aria-labelledby="hallazgos-heading">

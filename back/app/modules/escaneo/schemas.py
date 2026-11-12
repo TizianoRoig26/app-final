@@ -12,6 +12,8 @@ class VulnerabilityScanBase(BaseModel):
     cve: Optional[str] = None
     description: Optional[str] = None
     solution: Optional[str] = None
+    scan_source: Optional[str] = "automated"
+
 
 
 class VulnerabilityScanResponse(VulnerabilityScanBase):

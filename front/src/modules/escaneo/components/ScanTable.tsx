@@ -182,18 +182,22 @@ export const ScanTable: React.FC<ScanTableProps> = ({ scans, isLoading }) => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 border-y border-slate-200 py-2.5 font-mono bg-slate-50 px-2 rounded">
+              <div className="grid grid-cols-4 gap-2 border-y border-slate-200 py-2.5 font-mono bg-slate-50 px-2 rounded">
                 <div>
                   <span className="text-[10px] text-slate-500 uppercase block">Host</span>
                   <span className="text-slate-800">{selectedScan.host}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 uppercase block">Puerto / Protocolo</span>
-                  <span className="text-slate-800">{selectedScan.port || 'No especificado'}</span>
+                  <span className="text-[10px] text-slate-500 uppercase block">Puerto</span>
+                  <span className="text-slate-800">{selectedScan.port || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-500 uppercase block">Clasificación CVE</span>
+                  <span className="text-[10px] text-slate-500 uppercase block">CVE</span>
                   <span className="text-slate-800">{selectedScan.cve || 'N/A'}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] text-slate-500 uppercase block">Origen</span>
+                  <span className="text-slate-800">{selectedScan.scan_source || 'automated'}</span>
                 </div>
               </div>
 

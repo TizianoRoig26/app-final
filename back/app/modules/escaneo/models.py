@@ -15,6 +15,8 @@ class VulnerabilityScan(Base):
     cve = Column(String(50), nullable=True)
     description = Column(Text, nullable=True)
     solution = Column(Text, nullable=True)
+    scan_source = Column(String(50), default="automated", nullable=True)
+
 
 
 class ScanSchedule(Base):

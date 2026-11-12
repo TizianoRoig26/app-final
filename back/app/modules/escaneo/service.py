@@ -73,24 +73,57 @@ class ScanService:
     def trigger_scan(db: Session, req: TriggerScanRequest, user_email: str) -> ScanAudit:
         status_result = "queued"
         notes_detail = req.notes or ""
+        dispatched = False
 
-        # Intento de comunicación con el Webhook de n8n
-        try:
-            with httpx.Client(timeout=3.0) as client:
-                res = client.post(
-                    settings.N8N_WEBHOOK_URL,
-                    json={
-                        "target": req.target,
-                        "scan_type": req.scan_type,
-                        "triggered_by": user_email,
-                        "timestamp": datetime.now(timezone.utc).isoformat()
-                    }
-                )
-                if res.status_code in [200, 201, 202]:
-                    status_result = "dispatched"
-        except Exception:
-            # Si n8n no está disponible en este instante, el escaneo queda encolado
+        # 1. Intentar ejecución vía n8n REST API (/api/v1/workflows/{id}/run)
+        if settings.N8N_WORKFLOW_ID:
+            try:
+                headers = {}
+                if settings.N8N_API_KEY:
+                    headers["X-N8N-API-KEY"] = settings.N8N_API_KEY
+                
+                api_url = f"{settings.N8N_BASE_URL.rstrip('/')}/api/v1/workflows/{settings.N8N_WORKFLOW_ID}/run"
+                with httpx.Client(timeout=4.0) as client:
+                    res = client.post(
+                        api_url,
+                        headers=headers,
+                        json={
+                            "destination": req.target,
+                            "scan_type": req.scan_type,
+                            "triggered_by": user_email
+                        }
+                    )
+                    if res.status_code in [200, 201, 202]:
+                        status_result = "dispatched"
+                        notes_detail = f"{notes_detail} | n8n API OK (Workflow: {settings.N8N_WORKFLOW_ID})".strip(" |")
+                        dispatched = True
+            except Exception:
+                pass
+
+        # 2. Si la API no respondió o no está configurada, intentar vía Webhook
+        if not dispatched and settings.N8N_WEBHOOK_URL:
+            try:
+                with httpx.Client(timeout=3.0) as client:
+                    res = client.post(
+                        settings.N8N_WEBHOOK_URL,
+                        json={
+                            "target": req.target,
+                            "scan_type": req.scan_type,
+                            "triggered_by": user_email,
+                            "workflow_id": settings.N8N_WORKFLOW_ID,
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        }
+                    )
+                    if res.status_code in [200, 201, 202]:
+                        status_result = "dispatched"
+                        notes_detail = f"{notes_detail} | n8n Webhook OK".strip(" |")
+                        dispatched = True
+            except Exception:
+                pass
+
+        if not dispatched:
             status_result = "queued"
+            notes_detail = f"{notes_detail} | Encolado (n8n no disponible o en reposo)".strip(" |")
 
         audit = ScanAudit(
             triggered_at=datetime.now(timezone.utc),
@@ -104,6 +137,47 @@ class ScanService:
         db.commit()
         db.refresh(audit)
         return audit
+
+    @staticmethod
+    def get_thesis_metrics() -> dict:
+        return {
+            "workflow_id": settings.N8N_WORKFLOW_ID,
+            "cron_schedule": "0 2 * * * (02:00 AM diario)",
+            "laboratory_targets": [
+                {
+                    "ip": "172.18.0.200",
+                    "hostname": "vuln-srv1",
+                    "os": "Debian Buster (Docker)",
+                    "services": ["vsftpd 3.0.3 (puerto 21)", "OpenSSH 7.9p1 (puerto 22)"],
+                    "description": "Servidor de transferencia y acceso remoto con servicios vulnerables"
+                },
+                {
+                    "ip": "172.18.0.201",
+                    "hostname": "vuln-srv2",
+                    "os": "Debian Bullseye (Docker)",
+                    "services": ["Apache 2.4.49 (puerto 80 - CVE-2021-41773)", "OpenSSH (puerto 22)"],
+                    "description": "Servidor web con vulnerabilidad crítica de Path Traversal y RCE"
+                },
+                {
+                    "ip": "172.18.0.202",
+                    "hostname": "vuln-srv3",
+                    "os": "Ubuntu Focal (Docker)",
+                    "services": ["Apache 2.4.41 (puerto 80)", "vsftpd (puerto 21)", "OpenSSH (puerto 22)"],
+                    "description": "Servidor de aplicaciones multired con exposición de servicios mixtos"
+                }
+            ],
+            "experimental_benchmark": {
+                "manual_duration_formatted": "44m 42s",
+                "manual_duration_seconds": 2682,
+                "automated_duration_formatted": "16m 28s",
+                "automated_duration_seconds": 988,
+                "time_reduction_percentage": 63.16,
+                "ground_truth_total": 32,
+                "detected_vulnerabilities": 29,
+                "effectiveness_rate_percentage": 90.625,
+                "diagnostic_disparity_percentage": 0.0
+            }
+        }
 
     @staticmethod
     def get_or_create_schedule(db: Session) -> ScanSchedule:

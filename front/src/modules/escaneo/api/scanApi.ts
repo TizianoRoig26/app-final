@@ -7,6 +7,7 @@ import type {
   TriggerScanPayload,
   TriggerScanResponse,
   ScanFilterParams,
+  ThesisMetrics,
 } from '../types'
 
 export const SCAN_KEYS = {
@@ -14,6 +15,7 @@ export const SCAN_KEYS = {
   list: (filters: ScanFilterParams) => [...SCAN_KEYS.all, 'list', filters] as const,
   summary: () => [...SCAN_KEYS.all, 'summary'] as const,
   schedule: () => [...SCAN_KEYS.all, 'schedule'] as const,
+  thesisMetrics: () => [...SCAN_KEYS.all, 'thesis-metrics'] as const,
 }
 
 // Obtener listado de escaneos
@@ -47,6 +49,15 @@ export function useScanSchedule() {
   return useQuery({
     queryKey: SCAN_KEYS.schedule(),
     queryFn: () => apiClient<ScanSchedule>('/scans/schedule'),
+  })
+}
+
+// Obtener métricas experimentales y objetivos de laboratorio de la tesis
+export function useThesisMetrics() {
+  return useQuery({
+    queryKey: SCAN_KEYS.thesisMetrics(),
+    queryFn: () => apiClient<ThesisMetrics>('/scans/thesis-metrics'),
+    staleTime: 60000,
   })
 }
 

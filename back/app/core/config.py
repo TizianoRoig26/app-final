@@ -16,17 +16,20 @@ class Settings(BaseSettings):
     )
 
     # Integración con n8n
+    N8N_BASE_URL: str = os.getenv("N8N_BASE_URL", "http://localhost:5678")
+    N8N_API_KEY: str = os.getenv("N8N_API_KEY", "")
+    N8N_WORKFLOW_ID: str = os.getenv("N8N_WORKFLOW_ID", "eZcFfWr0YiA2pAE3")
     N8N_WEBHOOK_URL: str = os.getenv(
         "N8N_WEBHOOK_URL",
         "http://localhost:5678/webhook/trigger-scan"
     )
-    N8N_API_KEY: str = os.getenv("N8N_API_KEY", "")
 
-    # Configuración de escaneo
+    # Configuración de escaneo para laboratorio TASTSERV
     DEFAULT_SCAN_CRON: str = "02:00"
-    DEFAULT_SCAN_CIDR: str = "192.168.100.0/24"
+    DEFAULT_SCAN_CIDR: str = "172.18.0.200 172.18.0.201 172.18.0.202"
 
     model_config = SettingsConfigDict(case_sensitive=True, env_file=".env", extra="ignore")
+
 
 
 settings = Settings()
