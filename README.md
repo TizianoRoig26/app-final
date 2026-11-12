@@ -2,6 +2,8 @@
 
 Plataforma de auditoría, gestión y monitoreo continuo de vulnerabilidades de seguridad sobre infraestructura de red local. Desarrollado como proyecto académico de tesis basado en estándares de la industria (Nmap, OpenVAS, PostgreSQL, n8n, FastAPI y React).
 
+> **Integración del Ecosistema**: Este sistema actúa como la interfaz de usuario, API REST y consola de telemetría, y **funciona en conjunto con [TizianoRoig26/Final](https://github.com/TizianoRoig26/Final)**, el cual contiene la infraestructura de escaneo (Greenbone Community Edition / OpenVAS), el orquestador n8n con los workflows automatizados, los scripts GMP y el registro experimental de la tesis.
+
 ---
 
 ## 1. Arquitectura del Sistema
