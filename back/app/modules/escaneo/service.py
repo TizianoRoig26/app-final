@@ -103,9 +103,17 @@ class ScanService:
         # 2. Si la API no respondió o no está configurada, intentar vía Webhook
         if not dispatched and settings.N8N_WEBHOOK_URL:
             try:
+                webhook_headers: dict = {}
+                # El nodo "Webhook - Trigger Scan" usa headerAuth (credencial webhookHeaderAuth01).
+                # El header se llama X-N8N-API-KEY y su valor es N8N_WEBHOOK_SECRET.
+                # Si no está configurado, se envía la petición sin header (n8n devolverá 401
+                # y el servicio quedará en modo queued — sin crashear).
+                if settings.N8N_WEBHOOK_SECRET:
+                    webhook_headers["X-N8N-API-KEY"] = settings.N8N_WEBHOOK_SECRET
                 with httpx.Client(timeout=3.0) as client:
                     res = client.post(
                         settings.N8N_WEBHOOK_URL,
+                        headers=webhook_headers,
                         json={
                             "target": req.target,
                             "scan_type": req.scan_type,
@@ -118,8 +126,14 @@ class ScanService:
                         status_result = "dispatched"
                         notes_detail = f"{notes_detail} | n8n Webhook OK".strip(" |")
                         dispatched = True
-            except Exception:
-                pass
+                    else:
+                        notes_detail = (
+                            f"{notes_detail} | n8n Webhook respondió {res.status_code}"
+                        ).strip(" |")
+            except httpx.TimeoutException:
+                notes_detail = f"{notes_detail} | n8n Webhook timeout".strip(" |")
+            except Exception as exc:
+                notes_detail = f"{notes_detail} | n8n Webhook error: {type(exc).__name__}".strip(" |")
 
         if not dispatched:
             status_result = "queued"
